@@ -61,9 +61,7 @@ export default function Dashboard() {
         {/* Greeting */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-navy-900">Hello, {user.name.split(' ')[0]}!</h1>
-          <p className="text-gray-500 mt-1">
-            Here's your NovaBank demo dashboard overview.
-          </p>
+          
         </div>
 
         {alert && (
