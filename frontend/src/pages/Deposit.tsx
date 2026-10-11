@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowDownCircle, CheckCircle2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import * as storage from '@/utils/storage';
 import { calculateBalance, generateTransactionId } from '@/utils/bankingUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
 import PinVerificationModal from '@/components/PinVerificationModal';
