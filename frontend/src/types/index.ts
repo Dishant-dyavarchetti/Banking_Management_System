@@ -13,12 +13,15 @@ export type TransactionStatus = 'Success' | 'Failed' | 'Pending';
 
 export interface Transaction {
   id: string;
+  accountNumber?: string;
   date: string; // ISO string
   type: TransactionType;
   description: string;
   amount: number; // signed: + credit, - debit
   balanceAfter: number;
   status: TransactionStatus;
+  recipientAccount?: string;
+  recipientName?: string;
 }
 
 export type LoanType = 'Home Loan' | 'Car Loan' | 'Education Loan';
@@ -34,6 +37,7 @@ export interface LoanPayment {
 
 export interface Loan {
   id: string;
+  accountNumber: string;
   type: LoanType;
   principal: number;
   interestRate: number; // annual %
@@ -54,15 +58,22 @@ export interface Loan {
   disbursementTransactionId?: string;
 }
 
-export interface User {
+interface Customer {
+  id: number;
   name: string;
   email: string;
-  password: string;
+  phone: string;
+  // password: string;
   accountType: AccountType;
-  pin: string;
+  // pin: string;
+  balance: number;
   accountNumber: string;
+  transactions: Transaction[];
+  loans?: Loan[];
   createdAt: string;
 }
+
+export type User = Customer;
 
 export interface ContactQuery {
   id: string;

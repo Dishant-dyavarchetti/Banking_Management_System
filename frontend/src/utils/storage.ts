@@ -1,8 +1,7 @@
 import type { User, Transaction, Loan, ContactQuery } from '@/types';
-import { createSampleTransactions, generateAccountNumber } from '@/utils/bankingUtils';
 
 const KEYS = {
-  user: 'novabank_user',
+  Customer: 'novabank_Customer',
   session: 'novabank_session',
   transactions: 'novabank_transactions',
   loans: 'novabank_loans',
@@ -26,18 +25,22 @@ function write<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-/* ---------- User ---------- */
+/* ---------- Customer ---------- */
 
-export function getUser(): User | null {
-  return read<User | null>(KEYS.user, null);
+function getCustomer(): User | null {
+  return read<User | null>(KEYS.Customer, null);
 }
 
-export function saveUser(user: User): void {
-  write(KEYS.user, user);
+export const getUser = getCustomer;
+
+function saveCustomer(Customer: User): void {
+  write(KEYS.Customer, Customer); 
 }
 
-export function clearUser(): void {
-  localStorage.removeItem(KEYS.user);
+export const setUser = saveCustomer;
+
+export function clearCustomer(): void {
+  localStorage.removeItem(KEYS.Customer);
 }
 
 /* ---------- Session ---------- */
@@ -52,23 +55,24 @@ export function setSession(active: boolean): void {
 
 /* ---------- Transactions ---------- */
 
-export function getTransactions(): Transaction[] {
-  return read<Transaction[]>(KEYS.transactions, []);
-}
+// export function getTransactions(): Transaction[] {
+//   return read<Transaction[]>(KEYS.transactions, []);
+// }
 
-export function saveTransactions(txs: Transaction[]): void {
-  write(KEYS.transactions, txs);
-}
+// export function saveTransactions(txs: Transaction[]): void {
+//   write(KEYS.transactions, txs);
+// }
 
 /* ---------- Loans ---------- */
 
-export function getLoans(): Loan[] {
-  return read<Loan[]>(KEYS.loans, []);
-}
+// export function getLoans(): Loan[] {
+//   return read<Loan[]>(KEYS.loans, []);
+// }
 
-export function saveLoans(loans: Loan[]): void {
-  write(KEYS.loans, loans);
-}
+// export function saveLoans(loans: Loan[]): void {
+//   write(KEYS.loans, loans);
+// }
+
 
 /* ---------- Contact Queries ---------- */
 
@@ -120,21 +124,21 @@ export function setAccountBalanceRevealed(revealed: boolean): void {
 
 /* ---------- Full Account Creation ---------- */
 
-export function createDemoAccount(user: Omit<User, 'accountNumber' | 'createdAt'>): void {
-  const fullUser: User = {
-    ...user,
-    accountNumber: generateAccountNumber(),
-    createdAt: new Date().toISOString(),
-  };
-  saveUser(fullUser);
-  saveTransactions(createSampleTransactions());
-  saveLoans([]);
-  setPinAttempts(0);
-  setBalanceBlocked(false);
-  setBalanceRevealed(false);
-  setAccountBalanceRevealed(false);
-  setSession(true);
-}
+// export function createDemoAccount(Customer: Omit<Customer, 'accountNumber' | 'createdAt'>): void {
+//   const fullCustomer: Customer = {
+//     ...Customer,
+//     accountNumber: generateAccountNumber(),
+//     createdAt: new Date().toISOString(),
+//   };
+//   saveCustomer(fullCustomer);
+//   saveTransactions(createSampleTransactions());
+//   saveLoans([]);
+//   setPinAttempts(0);
+//   setBalanceBlocked(false);
+//   setBalanceRevealed(false);
+//   setAccountBalanceRevealed(false);
+//   setSession(true);
+// }
 
 /* ---------- Full Reset ---------- */
 

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Landmark, User, Mail, Lock, PiggyBank, KeyRound, ArrowRight } from 'lucide-react';
+import { Landmark, User, Mail, Lock, PiggyBank, KeyRound, ArrowRight, Phone } from 'lucide-react';
+import { registerCustomer } from '@/utils/api';
+import { RegistrationInput } from '@/utils/api';
 import { useApp } from '@/context/AppContext';
 import * as storage from '@/utils/storage';
 import Alert from '@/components/Alert';
@@ -8,10 +10,10 @@ import type { AccountType } from '@/types';
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { login } = useApp();
   const [form, setForm] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     accountType: '' as AccountType | '',
@@ -29,21 +31,19 @@ export default function Signup() {
     if (!form.name.trim()) return 'Full name is required.';
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) return 'Please enter a valid email address.';
     if (!form.password) return 'Password is required.';
-    if (form.password.length < 4) return 'Password must be at least 4 characters.';
+    if (form.password.length < 6) return 'Password must be at least 6 characters.';
     if (form.password !== form.confirmPassword) return 'Passwords do not match.';
+    if (!form.phone) return 'Phone number is required.';
+    if (!/^\d{10}$/.test(form.phone)) return 'Phone number must be exactly 10 digits.';
     if (!form.accountType) return 'Please select an account type.';
     if (!/^\d{4}$/.test(form.pin)) return 'PIN must be exactly 4 digits.';
     if (form.pin !== form.confirmPin) return 'PINs do not match.';
 
-    // Check for duplicate demo account
-    const existing = storage.getUser();
-    if (existing && existing.email === form.email) {
-      return 'A demo account with this email already exists. Please login instead.';
-    }
+
     return null;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -55,17 +55,37 @@ export default function Signup() {
 
     setLoading(true);
 
-    // Create the demo account with starting balance and sample transactions
-    storage.createDemoAccount({
-      name: form.name.trim(),
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-      accountType: form.accountType as AccountType,
-      pin: form.pin,
-    });
 
-    login();
-    navigate('/dashboard');
+    try {
+      const registrationData: RegistrationInput =
+      {
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone.trim(),
+        password: form.password,
+        accountType: form.accountType as AccountType,
+        pin: form.pin,
+      };
+
+      const response = await registerCustomer(registrationData);
+
+      navigate('/login', {
+        state: {
+          successMessage: `Account created successfully! Your account number is: ${response.accountNumber}`,
+        }
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to create account. please try again');
+      }
+    } finally {
+      setLoading(false);
+    }
+
+
+
   };
 
   return (
@@ -79,8 +99,8 @@ export default function Signup() {
                 <Landmark className="w-6 h-6 text-white" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-navy-900">Create Your Demo Account</h1>
-            <p className="text-sm text-gray-500 mt-1">Get started with ₹25,000 fictional starting balance</p>
+            <h1 className="text-2xl font-bold text-navy-900">Create Your Account in our BMS</h1>
+
           </div>
 
           {error && <div className="mb-4"><Alert type="error" message={error} autoClose={false} /></div>}
@@ -115,6 +135,23 @@ export default function Signup() {
                 />
               </div>
             </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-navy-700 mb-1.5">Phone Number</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  placeholder="10-digit mobile number"
+                  maxLength={10}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-100 outline-none transition-all"
+                />
+              </div>
+            </div>
+
 
             {/* Passwords */}
             <div className="grid grid-cols-2 gap-3">
@@ -155,11 +192,10 @@ export default function Signup() {
                     key={type}
                     type="button"
                     onClick={() => handleChange('accountType', type)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${
-                      form.accountType === type
+                    className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${form.accountType === type
                         ? 'border-accent-500 bg-accent-50 text-accent-700'
                         : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
                     <PiggyBank className="w-4 h-4" />
                     <span className="text-sm font-medium">{type} Account</span>

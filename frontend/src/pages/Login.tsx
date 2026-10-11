@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Landmark, Mail, Lock, ArrowRight, Info } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import * as storage from '@/utils/storage';
 import Alert from '@/components/Alert';
+import { authenticateCustomer } from '@/utils/api';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,10 +13,14 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [successMessage, setSuccessMessage] = useState<string>((location.state as {successMessage?: string })?.successMessage || '');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     if (!email || !password) {
       setError('Please enter both email and password.');
@@ -30,28 +35,43 @@ export default function Login() {
     setLoading(true);
 
     // Check credentials against locally saved demo account
-    const user = storage.getUser();
-    if (!user) {
-      setError('No demo account found. Please create an account first.');
-      setLoading(false);
-      return;
-    }
+    // const user = storage.getUser();
+    // if (!user) {
+    //   setError('No demo account found. Please create an account first.');
+    //   setLoading(false);
+    //   return;
+    // }
 
-    if (user.email !== email) {
-      setError('No account found with this email. Please check or create a new account.');
-      setLoading(false);
-      return;
-    }
+    // if (user.email !== email) {
+    //   setError('No account found with this email. Please check or create a new account.');
+    //   setLoading(false);
+    //   return;
+    // }
 
-    if (user.password !== password) {
-      setError('Incorrect password. Please try again.');
-      setLoading(false);
-      return;
-    }
+    // if (user.password !== password) {
+    //   setError('Incorrect password. Please try again.');
+    //   setLoading(false);
+    //   return;
+    // }
 
-    // Success
-    login();
-    navigate('/dashboard');
+    // // Success
+    // login();
+    // navigate('/dashboard');
+
+    try{
+      const customer = await authenticateCustomer(email.trim().toLowerCase(), password);
+
+      login(customer);
+      navigate('/dashboard');
+    }catch(err: unknown){
+      if(err instanceof Error){
+        setError(err.message);
+      }else{
+        setError('invalid email or password. Please try again');
+      }
+    }finally{
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,6 +88,13 @@ export default function Login() {
             <h1 className="text-2xl font-bold text-navy-900">Welcome Back</h1>
             <p className="text-sm text-gray-500 mt-1">Login to your NovaBank demo account</p>
           </div>
+
+          {/* success message from signup */}
+          {successMessage && (
+            <div>
+              <Alert type='success' message={successMessage} onClose={() => setSuccessMessage('')} />
+            </div>
+          )}
 
           {error && <div className="mb-4"><Alert type="error" message={error} autoClose={false} /></div>}
 

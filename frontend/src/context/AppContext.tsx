@@ -7,7 +7,7 @@ interface AppContextValue {
   isLoggedIn: boolean;
   transactions: Transaction[];
   loans: Loan[];
-  login: () => void;
+  login: (customer: User) => void;
   logout: () => void;
   refreshData: () => void;
   updateUser: (user: User) => void;
@@ -29,16 +29,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const session = storage.getSession();
     setUser(u);
     setIsLoggedIn(session && !!u);
-    setTransactionsState(storage.getTransactions());
-    setLoansState(storage.getLoans());
+    setTransactionsState(u?.transactions || []);
+    setLoansState(u?.loans || []);
   }, []);
 
-  const login = () => {
+  const login = (customer: User) => {
     setIsLoggedIn(true);
     storage.setSession(true);
-    setUser(storage.getUser());
-    setTransactionsState(storage.getTransactions());
-    setLoansState(storage.getLoans());
+    storage.setUser(customer);
+    setUser(customer);
+    setTransactionsState(customer.transactions || []);
+    setLoansState(customer.loans || []);
   };
 
   const logout = () => {
@@ -49,24 +50,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshData = () => {
-    setUser(storage.getUser());
-    setTransactionsState(storage.getTransactions());
-    setLoansState(storage.getLoans());
+    const u = storage.getUser();
+    setUser(u);
+    setTransactionsState(u?.transactions || []);
+    setLoansState(u?.loans || []);
   };
 
   const updateUser = (updatedUser: User) => {
-    storage.saveUser(updatedUser);
+    storage.setUser(updatedUser);
     setUser(updatedUser);
   };
 
   const setTransactions = (txs: Transaction[]) => {
-    storage.saveTransactions(txs);
     setTransactionsState(txs);
+    if(user){
+      const updated = { ...user, transactions: txs};
+      setUser(updated);
+      storage.setUser(updated);
+    }
   };
 
   const setLoans = (newLoans: Loan[]) => {
-    storage.saveLoans(newLoans);
+    
     setLoansState(newLoans);
+    if(user){
+      const updated = {...user, loans: newLoans};
+      setUser(updated);
+      storage.setUser(updated);
+    }
   };
 
   return (
