@@ -9,10 +9,11 @@ import { formatCurrency, formatDateShort } from '@/utils/formatCurrency';
 import {
   LOAN_RATES, LOAN_INFO, calculateEMI, checkLoanEligibility, addMonth, LOAN_RULES,
 } from '@/utils/loanUtils';
+import { resetAllData } from '@/utils/storage';
 import PinVerificationModal from '@/components/PinVerificationModal';
 import Alert from '@/components/Alert';
 import ConfirmationModal from '@/components/ConfirmationModal';
-import type { Loan, LoanType, Transaction } from '@/types';
+import type { Loan, LoanStatus, LoanType, Transaction } from '@/types';
 
 const LOAN_ICONS: Record<LoanType, typeof Home> = {
   'Home Loan': Home,
@@ -32,7 +33,7 @@ export default function LoanPage() {
     monthlyIncome: '',
   });
   const [calculation, setCalculation] = useState<{ emi: number; totalInterest: number; totalRepayment: number } | null>(null);
-  const [loanResult, setLoanResult] = useState<{ status: 'Approved' | 'Rejected' | 'Pending'; reason: string } | null>(null);
+  const [loanResult, setLoanResult] = useState<{ status: LoanStatus; reason: string } | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPinModal, setShowPinModal] = useState(false);
@@ -254,10 +255,8 @@ export default function LoanPage() {
   };
 
   const handleResetAllData = () => {
-    import('@/utils/storage').then((storage) => {
-      storage.resetAllData();
-      window.location.href = '/';
-    });
+    resetAllData();
+    window.location.href = '/';
   };
 
   return (
